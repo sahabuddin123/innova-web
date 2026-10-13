@@ -1,0 +1,36 @@
+[20-Apr-2025 11:01:54 UTC] PHP Fatal error:  Uncaught Error: Class 'App\Repositories\BaseRepository' not found in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/SeminorRepository.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/SeminorRepository.php on line 18
+[24-Apr-2025 01:23:29 UTC] PHP Fatal error:  Uncaught Error: Class 'App\Repositories\BaseRepository' not found in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/SliderRepository.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/SliderRepository.php on line 18
+[24-Apr-2025 23:36:07 UTC] PHP Fatal error:  Uncaught Error: Class 'App\Repositories\BaseRepository' not found in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/CoursesRepository.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/CoursesRepository.php on line 18
+[25-Apr-2025 23:56:20 UTC] PHP Fatal error:  Uncaught Error: Class 'App\Repositories\BaseRepository' not found in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/CertificateRepository.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/CertificateRepository.php on line 18
+[26-Apr-2025 01:52:09 UTC] PHP Fatal error:  Uncaught Error: Class 'App\Repositories\BaseRepository' not found in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/InvestmentRepository.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/InvestmentRepository.php on line 18
+[28-Apr-2025 09:14:38 UTC] PHP Fatal error:  Uncaught Error: Class 'App\Repositories\BaseRepository' not found in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/SessionsRepository.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/SessionsRepository.php on line 18
+[28-Apr-2025 10:42:30 UTC] PHP Fatal error:  Uncaught Error: Class 'App\Repositories\BaseRepository' not found in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/SuccessStoryRepository.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/SuccessStoryRepository.php on line 18
+[28-Apr-2025 10:59:35 UTC] PHP Fatal error:  Uncaught Error: Class 'App\Repositories\BaseRepository' not found in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/cmsAboutRepository.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/cmsAboutRepository.php on line 18
+[29-Apr-2025 04:14:17 UTC] PHP Fatal error:  Uncaught Error: Class 'App\Repositories\BaseRepository' not found in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/GalleryRepository.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/sahabriyaj/innovacomputersbd.com/app/Repositories/GalleryRepository.php on line 18
