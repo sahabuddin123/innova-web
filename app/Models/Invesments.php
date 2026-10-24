@@ -40,4 +40,12 @@ class Invesments extends Model
     {
         return $this->hasMany(Shareholder::class, 'id', 'shareholder_id');
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function shareholder()
+    {
+        return $this->belongsTo(Shareholder::class, 'shareholder_id');
+    }
 }

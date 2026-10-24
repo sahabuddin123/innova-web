@@ -31,6 +31,11 @@ class SettingController extends BaseController
      */
     public function update(Request $request)
     {
+        $request->validate([
+            'site_logo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'site_favicon' => 'nullable|file|mimes:ico,png,jpg|max:512',
+        ]);
+
         try {
             if ($request->has('site_logo') && ($request->file('site_logo') instanceof UploadedFile)) {
      

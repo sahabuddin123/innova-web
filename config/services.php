@@ -34,4 +34,18 @@ return [
         'secret' => env('SPARKPOST_SECRET'),
     ],
 
+    'bkash' => [
+        'app_key' => env('BKASH_CHECKOUT_APP_KEY'),
+        'app_secret' => env('BKASH_CHECKOUT_APP_SECRET'),
+        'user_name' => env('BKASH_CHECKOUT_USER_NAME'),
+        'password' => env('BKASH_CHECKOUT_PASSWORD'),
+        'base_url' => env('BKASH_BASE_URL', 'https://checkout.pay.bka.sh/v1.2.0-beta'),
+    ],
+
+    'sms' => [
+        'url' => env('SMS_URL'),
+        'api_key' => env('SMS_API_KEY'),
+        'sender_id' => env('SMS_SENDER_ID'),
+    ],
+
 ];

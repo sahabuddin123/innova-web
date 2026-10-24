@@ -29,4 +29,12 @@ class Admission extends Model
     {
         return $this->hasMany(Courses::class, 'id','courseId');
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function course()
+    {
+        return $this->belongsTo(Courses::class, 'courseId', 'id');
+    }
 }

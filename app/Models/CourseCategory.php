@@ -28,4 +28,11 @@ class CourseCategory extends Model
         return $this->belongsTo(CourseCategory::class, 'category_id', 'id');
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function courses()
+    {
+        return $this->hasMany(Courses::class, 'category_id', 'id');
+    }
 }

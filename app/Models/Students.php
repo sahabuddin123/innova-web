@@ -16,6 +16,7 @@ class Students extends Model
      * @var array
      */
     protected $fillable = [ 
+        'user_id',
         'course_id',
         'branch_id',
         'batch_id', 
@@ -105,9 +106,8 @@ class Students extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    // public function user(): BelongsTo
-    // {
-    //     return $this->belongsTo(User::class, 'foreign_key', 'other_key');
-    // }
-
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

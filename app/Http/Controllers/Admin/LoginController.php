@@ -46,12 +46,27 @@ public function login(Request $request)
         'email'   => 'required|email',
         'password' => 'required|min:6'
     ]);
+
+    // Check if user has too many failed login attempts
+    if (method_exists($this, 'hasTooManyLoginAttempts') &&
+        $this->hasTooManyLoginAttempts($request)) {
+        $this->fireLockoutEvent($request);
+
+        return $this->sendLockoutResponse($request);
+    }
+
     if (Auth::guard('admin')->attempt([
         'email' => $request->email,
         'password' => $request->password
     ], $request->get('remember'))) {
+        $this->clearLoginAttempts($request);
+
         return redirect()->intended(route('admin.dashboard'));
     }
+
+    // Increment failed attempts for rate limiting
+    $this->incrementLoginAttempts($request);
+
     return back()->withInput($request->only('email', 'remember'));
 }
 
