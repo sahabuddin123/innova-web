@@ -16,12 +16,16 @@ class FeesTransections extends Model
      * @var array
      */
     protected $fillable = [
-        // 'user_id',
+        'user_id',
         'student_id',
         'paidamount',
         'paymentType',
         'paiddate',
-        'paidremark'
+        'paidremark',
+        'channel',
+        'trxID',
+        'paymentID',
+        'status'
     ];
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -33,6 +37,10 @@ class FeesTransections extends Model
     public function student()
     {
         return $this->belongsTo(Students::class, 'student_id', 'id');
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
     /**
      * @return Php Date function

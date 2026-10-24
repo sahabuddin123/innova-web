@@ -59,7 +59,7 @@ class Shareholder extends Model
     {
         $totalInvestment = $this->total_investment;
         $totalWithdrawn = InvestmentWithdraw::where('shareholder_id', $this->id)
-            ->where('status', 'approved')
+            ->whereIn('status', ['approved', '1'])
             ->sum('amount');
         return $totalInvestment - $totalWithdrawn;
     }

@@ -7,7 +7,7 @@ use App\Http\Controllers\BkashController;
 Route::group(['prefix'  =>  'admin'], function () {
 
     Route::get('login', 'Admin\LoginController@showLoginForm')->name('admin.login');
-    Route::post('login', 'Admin\LoginController@login')->name('admin.login.post');
+    Route::post('login', 'Admin\LoginController@login')->name('admin.login.post')->middleware('throttle:5,1');
     Route::get('logout', 'Admin\LoginController@logout')->name('admin.logout');
     /**
      *Admin Password Reset
@@ -28,27 +28,34 @@ Route::group(['prefix'  =>  'admin'], function () {
         /**
          * Storage link in server
          */
-        Route::get('/storagelink', function () {
+        Route::post('/storagelink', function () {
             Artisan::call('storage:link');
-        });
-        Route::get('/optimize', function () {
+            return redirect()->route('admin.dashboard')->with('success', 'Storage linked successfully.');
+        })->name('admin.maintenance.storagelink');
+        Route::post('/optimize', function () {
             Artisan::call('optimize:clear');
-        });
-        Route::get('/configcatche', function () {
+            return redirect()->route('admin.dashboard')->with('success', 'Optimization cache cleared.');
+        })->name('admin.maintenance.optimize');
+        Route::post('/configcatche', function () {
             Artisan::call('config:cache');
-        });
-        Route::get('/configclear', function () {
+            return redirect()->route('admin.dashboard')->with('success', 'Configuration cached.');
+        })->name('admin.maintenance.configcatche');
+        Route::post('/configclear', function () {
             Artisan::call('config:clear');
-        });
-        Route::get('/viewclear', function () {
+            return redirect()->route('admin.dashboard')->with('success', 'Configuration cache cleared.');
+        })->name('admin.maintenance.configclear');
+        Route::post('/viewclear', function () {
             Artisan::call('view:clear');
-        });
-        Route::get('/cacheclear', function () {
+            return redirect()->route('admin.dashboard')->with('success', 'Views cleared.');
+        })->name('admin.maintenance.viewclear');
+        Route::post('/cacheclear', function () {
             Artisan::call('cache:clear');
-        });
-        Route::get('/vendorpublish', function () {
+            return redirect()->route('admin.dashboard')->with('success', 'Application cache cleared.');
+        })->name('admin.maintenance.cacheclear');
+        Route::post('/vendorpublish', function () {
             Artisan::call('vendor:publish --provider="Greggilbert\Recaptcha\RecaptchaServiceProvider"');
-        });
+            return redirect()->route('admin.dashboard')->with('success', 'Vendor assets published.');
+        })->name('admin.maintenance.vendorpublish');
         // php artisan optimize:clear
 
         Route::get('settings', 'Admin\SettingController@index')->name('admin.settings');
@@ -175,11 +182,11 @@ Route::group(['prefix'  =>  'admin'], function () {
             Route::get('/{id}/edit', 'Admin\BatchsController@edit')->name('admin.batchs.edit');
             Route::post('/update', 'Admin\BatchsController@update')->name('admin.batchs.update');
             Route::post('/{id}/delete', 'Admin\BatchsController@delete')->name('admin.batchs.delete');
-            Route::get('/{id}/groupduesms', 'Admin\SMSController@groupDueSMS')->name('admin.students.groupDueSMS');
-            Route::get('/{id}/grouptodaypostpond', 'Admin\SMSController@groupTdyPSMS')->name('admin.students.groupTdyPSMS');
-            Route::get('/{id}/grouptomorrowpostpond', 'Admin\SMSController@groupTomPSMS')->name('admin.students.groupTomPSMS');
-            Route::get('/{id}/grouptodayremainder', 'Admin\SMSController@groupTCR')->name('admin.students.groupTCR');
-            Route::get('/{id}/groupnewschedule', 'Admin\SMSController@groupNCS')->name('admin.students.groupNCS');
+            Route::post('/{id}/groupduesms', 'Admin\SMSController@groupDueSMS')->name('admin.students.groupDueSMS');
+            Route::post('/{id}/grouptodaypostpond', 'Admin\SMSController@groupTdyPSMS')->name('admin.students.groupTdyPSMS');
+            Route::post('/{id}/grouptomorrowpostpond', 'Admin\SMSController@groupTomPSMS')->name('admin.students.groupTomPSMS');
+            Route::post('/{id}/grouptodayremainder', 'Admin\SMSController@groupTCR')->name('admin.students.groupTCR');
+            Route::post('/{id}/groupnewschedule', 'Admin\SMSController@groupNCS')->name('admin.students.groupNCS');
         });
 
         Route::group(['prefix'  =>   'students'], function () {
@@ -193,11 +200,11 @@ Route::group(['prefix'  =>  'admin'], function () {
             Route::get('/create', 'Admin\StudentsController@create')->name('admin.students.create');
             Route::get('/getCoursesInfo/{id}', 'Admin\StudentsController@getCoursesInfo');
             Route::post('/store', 'Admin\StudentsController@store')->name('admin.students.store');
-            Route::get('/{id}/duesms', 'Admin\SMSController@dueSMS')->name('admin.students.sms-due');
-            Route::get('/{id}/schedulesms', 'Admin\SMSController@scheduleSMS')->name('admin.students.sms-schedule');
-            Route::get('/{id}/remaindersms', 'Admin\SMSController@remainderSMS')->name('admin.students.sms-remainder');
-            Route::get('/{id}/todaypostpond', 'Admin\SMSController@todayPostpond')->name('admin.students.sms-todaypostpond');
-            Route::get('/{id}/tomorrowpostpond', 'Admin\SMSController@tomorrowPostpond')->name('admin.students.sms-tomorrowpostpond');
+            Route::post('/{id}/duesms', 'Admin\SMSController@dueSMS')->name('admin.students.sms-due');
+            Route::post('/{id}/schedulesms', 'Admin\SMSController@scheduleSMS')->name('admin.students.sms-schedule');
+            Route::post('/{id}/remaindersms', 'Admin\SMSController@remainderSMS')->name('admin.students.sms-remainder');
+            Route::post('/{id}/todaypostpond', 'Admin\SMSController@todayPostpond')->name('admin.students.sms-todaypostpond');
+            Route::post('/{id}/tomorrowpostpond', 'Admin\SMSController@tomorrowPostpond')->name('admin.students.sms-tomorrowpostpond');
             Route::get('/{id}/view', 'Admin\StudentsController@show')->name('admin.students.view');
             Route::post('/search', 'Admin\StudentsController@search')->name('admin.students.search');
             Route::get('/{id}/edit', 'Admin\StudentsController@edit')->name('admin.students.edit');
@@ -584,4 +591,12 @@ Route::group(['prefix'  =>  'admin'], function () {
             Route::post('/{id}/delete', 'WorkflowController@destroy')->name('admin.workflows.destroy');
         });
     });
+});
+
+/**
+ * UniSharp Laravel Filemanager Admin-Only Route Containment (SEC-04)
+ * Explicitly guards package routes with ['web', 'auth:admin'] at the expected '/laravel-filemanager' prefix.
+ */
+Route::group(['prefix' => 'laravel-filemanager', 'middleware' => ['web', 'auth:admin']], function () {
+    \UniSharp\LaravelFilemanager\Lfm::routes();
 });

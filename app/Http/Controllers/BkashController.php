@@ -7,6 +7,8 @@ use App\Util\BkashCredential;
 use Illuminate\Http\Request;
 use Session;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Models\FeesTransections;
 use Carbon\Carbon;
@@ -27,7 +29,7 @@ class BkashController extends Controller
         return array(
             'Content-Type:application/json',
             'Authorization:' .Session::get('bkash_token'),
-            'X-APP-Key:'.env('BKASH_CHECKOUT_APP_KEY')
+            'X-APP-Key:' . config('services.bkash.app_key', env('BKASH_CHECKOUT_APP_KEY'))
         );
     }
          
@@ -64,12 +66,15 @@ class BkashController extends Controller
     {
         $header = array(
                 'Content-Type:application/json',
-                'username:'.env('BKASH_CHECKOUT_USER_NAME'),
-                'password:'.env('BKASH_CHECKOUT_PASSWORD')
+                'username:' . config('services.bkash.user_name', env('BKASH_CHECKOUT_USER_NAME')),
+                'password:' . config('services.bkash.password', env('BKASH_CHECKOUT_PASSWORD'))
                 );
         $header_data_json=json_encode($header);
 
-        $body_data = array('app_key'=> env('BKASH_CHECKOUT_APP_KEY'), 'app_secret'=>env('BKASH_CHECKOUT_APP_SECRET'));
+        $body_data = array(
+            'app_key' => config('services.bkash.app_key', env('BKASH_CHECKOUT_APP_KEY')),
+            'app_secret' => config('services.bkash.app_secret', env('BKASH_CHECKOUT_APP_SECRET'))
+        );
         $body_data_json=json_encode($body_data);
         
         $response = $this->curlWithBody('/checkout/token/grant',$header,'POST',$body_data_json);
@@ -118,6 +123,10 @@ class BkashController extends Controller
     public function execute()
     {
         $paymentID = Session::get('paymentID');
+        if (empty($paymentID)) {
+            Session::put('errorMessage', 'No active payment session identifier found.');
+            return response()->json(['errorMessage' => 'No active payment session identifier found.'], 400);
+        }
 
         $header =$this->authHeaders();
 
@@ -131,6 +140,7 @@ class BkashController extends Controller
             // if execute api failed to response
             sleep(1);
             $response = $this->queryIframe($paymentID);
+            $arr = json_decode($response, true);
         }
         
         Session::put('response',$response);
@@ -169,19 +179,93 @@ class BkashController extends Controller
     public function success(Request $request)
     {
         $arr = Session::get('arr');
-        $fees =  new FeesTransections;
-        $fees->student_id = Session::get('student_id');
-        $fees->paidamount = $arr['amount'];
-        $fees->paymentType = Session::get('payment_type');
-        $fees->paiddate = Carbon::now()->format('Y-m-d');
-        $fees->paidremark ="Pay by Bkash";
-        $fees->channel = 2;
-        $fees->status = 1;
-        $fees->trxID = $arr['trxID'];
-        $fees->paymentID = $arr['paymentID'];
-        $fees->save();
+        $studentId = Session::get('student_id');
+
+        if (!$arr || !is_array($arr) || empty($arr['trxID']) || empty($arr['paymentID']) || empty($studentId)) {
+            return redirect()->route('user.payment.history')
+                ->with('error', 'No active payment session found.');
+        }
+
+        // Validate expected payment state: verify successful execution
+        if (empty($arr['transactionStatus']) || strtolower($arr['transactionStatus']) !== 'completed') {
+            return redirect()->route('user.payment.history')
+                ->with('error', 'Payment transaction is not in a completed state.');
+        }
+
+        if (isset($arr['errorCode']) && $arr['errorCode'] !== '0000') {
+            return redirect()->route('user.payment.history')
+                ->with('error', 'Payment execution returned an error code.');
+        }
+
+        $trxId = $arr['trxID'];
+        $lockKey = 'bkash_payment_trx_' . $trxId;
+        $lock = Cache::lock($lockKey, 15);
+
+        // Atomic deduplication: serialize concurrent requests for identical transaction ID
+        $processPayment = function () use ($arr, $studentId, $trxId) {
+            return DB::transaction(function () use ($arr, $studentId, $trxId) {
+                $existing = FeesTransections::where('trxID', $trxId)->first();
+                if ($existing) {
+                    return $existing;
+                }
+
+                $fees = new FeesTransections;
+                $fees->student_id = $studentId;
+                $fees->paidamount = $arr['amount'] ?? 0;
+                $fees->paymentType = Session::get('payment_type', 1);
+                $fees->paiddate = Carbon::now()->format('Y-m-d');
+                $fees->paidremark = "Pay by Bkash";
+                $fees->channel = 2;
+                $fees->status = 1;
+                $fees->trxID = $trxId;
+                $fees->paymentID = $arr['paymentID'] ?? null;
+
+                try {
+                    $fees->save();
+                } catch (\Illuminate\Database\QueryException $e) {
+                    // Gracefully recover if database unique constraint catches a race condition
+                    $existing = FeesTransections::where('trxID', $trxId)->first();
+                    if ($existing) {
+                        return $existing;
+                    }
+                    throw $e;
+                }
+
+                return $fees;
+            });
+        };
+
+        if ($lock->get()) {
+            try {
+                $fees = $processPayment();
+            } finally {
+                $lock->release();
+            }
+        } else {
+            // If lock could not be acquired immediately, wait briefly and check for existing record
+            $fees = FeesTransections::where('trxID', $trxId)->first();
+            if (!$fees) {
+                // Secondary fallback attempt with lock wait
+                try {
+                    $fees = $lock->block(5, $processPayment);
+                } catch (\Illuminate\Contracts\Cache\LockTimeoutException $e) {
+                    $fees = FeesTransections::where('trxID', $trxId)->first();
+                }
+            }
+        }
+
+        if (!$fees) {
+            return redirect()->route('user.payment.history')
+                ->with('error', 'Payment transaction could not be verified or recorded.');
+        }
+
+        $responseOutput = Session::get('response');
+
+        // Clear sensitive payment session keys to prevent replay attacks
+        Session::forget(['paymentID', 'arr']);
+
         return view('users.profile.success')->with([
-            'response' => Session::get('response')
+            'response' => $responseOutput
         ]);
     }
     

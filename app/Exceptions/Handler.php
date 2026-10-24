@@ -53,6 +53,13 @@ class Handler extends ExceptionHandler
     public function render($request, Throwable $exception)
     {
         if ($exception instanceof \Spatie\Permission\Exceptions\UnauthorizedException) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User does not have the required permissions.',
+                    'errors'  => null,
+                ], 403);
+            }
             return response()->json(['User have not permission for this page access.']);
         }
         return parent::render($request, $exception);
@@ -67,7 +74,11 @@ class Handler extends ExceptionHandler
 protected function unauthenticated($request, AuthenticationException $exception)
 {
     if ($request->expectsJson()) {
-        return response()->json(['message' => $exception->getMessage()], 401);
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthenticated.',
+            'errors'  => null,
+        ], 401);
     }
     $guard = Arr::get($exception->guards(), 0);
     switch($guard){
@@ -75,7 +86,7 @@ protected function unauthenticated($request, AuthenticationException $exception)
             $login = 'admin.login';
             break;
         default:
-            $login = 'auth.login';
+            $login = 'login';
             break;
     }
     return redirect()->guest(route($login));

@@ -16,12 +16,12 @@ class SMSController extends BaseController
     // For sms Settings
     public function send_sms($phone, $msg)
     {
-        $url = env('SMS_URL');
+        $url = config('services.sms.url', env('SMS_URL'));
         $data = [
-            "api_key" => env('SMS_API_KEY'),
+            "api_key" => config('services.sms.api_key', env('SMS_API_KEY')),
             "type" => "text",
             "contacts" => "88" . $phone,
-            "senderid" => env('SMS_SENDER_ID'),
+            "senderid" => config('services.sms.sender_id', env('SMS_SENDER_ID')),
             "msg" => $msg
         ];
         $ch = curl_init();
@@ -29,7 +29,8 @@ class SMSController extends BaseController
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
         $response = curl_exec($ch);
         curl_close($ch);
         return $response;
